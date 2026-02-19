@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import authRoutes from "./modules/auth/auth.routes";
+import userRoutes from "./modules/user/user.routes";
+import postsRoutes from "./modules/posts/posts.routes";
 import { globalErrorHandler } from "./middlewares/error.middleware";
 
 const app = express();
@@ -14,6 +16,8 @@ app.use(morgan("dev"));
 app.use(globalErrorHandler);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postsRoutes)
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
