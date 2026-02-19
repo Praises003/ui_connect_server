@@ -34,7 +34,11 @@ model User {
   level      Int?
   role       Role     @default(STUDENT)
   createdAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
   refreshToken String?
+  bio          String?  
+  avatarUrl    String?  
 
   posts      Post[]
   comments   Comment[]
