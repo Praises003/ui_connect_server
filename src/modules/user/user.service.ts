@@ -39,7 +39,7 @@ export const getProfileService = async (userId: string) => {
 /**
  * Get user by ID (Public Profile)
  */
-export const getUserByIdService = async (userId: string) => {
+export const getUserByIdService = async (userId: string, currentUserId?: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -54,6 +54,7 @@ export const getUserByIdService = async (userId: string) => {
       role: true,
       createdAt: true,
       isOnline: true,
+      followedBy: currentUserId ? { where: { id: currentUserId }, select: { id: true } } : false,
       _count: {
         select: {
           followedBy: true,
@@ -140,4 +141,39 @@ export const changePasswordService = async (
   });
 
   return { message: "Password updated successfully" };
+};
+
+/**
+ * Toggle follow/unfollow a user
+ */
+export const toggleFollowService = async (followerId: string, targetId: string) => {
+  if (followerId === targetId) {
+    throw new AppError("You cannot follow yourself", 400);
+  }
+
+  // Check if already following
+  const target = await prisma.user.findUnique({
+    where: { id: targetId },
+    select: { followedBy: { where: { id: followerId }, select: { id: true } } },
+  });
+
+  if (!target) throw new AppError("User not found", 404);
+
+  const isFollowing = target.followedBy.length > 0;
+
+  if (isFollowing) {
+    // Unfollow
+    await prisma.user.update({
+      where: { id: targetId },
+      data: { followedBy: { disconnect: { id: followerId } } },
+    });
+    return { isFollowing: false };
+  } else {
+    // Follow
+    await prisma.user.update({
+      where: { id: targetId },
+      data: { followedBy: { connect: { id: followerId } } },
+    });
+    return { isFollowing: true };
+  }
 };

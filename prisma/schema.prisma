@@ -50,30 +50,47 @@ model User {
   likes          Like[]
   communities    CommunityMember[]
   messages       Message[]
+  communityMessages CommunityMessage[]
   createdCommunities Community[]
-  notifications  Notification[]
+  notifications  UserNotification[]  @relation("ReceivedNotifications")
+  sentNotifications UserNotification[] @relation("SentNotifications")
   participants   ConversationParticipant[]
 }
 
 model Community {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  icon        String
-  privacy     String   @default("public") // "public" | "private"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(uuid())
+  name            String
+  description     String
+  icon            String
+  privacy         String   @default("public") // "public" | "private"
+  targetAudience  String   @default("all")    // "all" | specific department name
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   creator     User     @relation(fields: [creatorId], references: [id])
   creatorId   String
 
   members     CommunityMember[]
   posts       Post[]
+  chatMessages CommunityMessage[]
+}
+
+model CommunityMessage {
+  id          String   @id @default(uuid())
+  content     String
+  createdAt   DateTime @default(now())
+
+  sender      User      @relation(fields: [senderId], references: [id])
+  senderId    String
+
+  community   Community @relation(fields: [communityId], references: [id])
+  communityId String
 }
 
 model CommunityMember {
   id          String   @id @default(uuid())
   role        CommunityRole @default(MEMBER)
+  status      MemberStatus  @default(APPROVED)
   joinedAt    DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id])
@@ -83,6 +100,11 @@ model CommunityMember {
   communityId String
 
   @@unique([userId, communityId])
+}
+
+enum MemberStatus {
+  PENDING
+  APPROVED
 }
 
 
@@ -103,6 +125,8 @@ model ConversationParticipant {
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   conversationId String
   
+  unreadCount    Int          @default(0)
+
   @@unique([userId, conversationId])
 }
 
@@ -118,16 +142,6 @@ model Message {
   conversationId String
 }
 
-model Notification {
-  id        String   @id @default(uuid())
-  type      NotificationType
-  content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  recipient User     @relation(fields: [recipientId], references: [id])
-  recipientId String
-}
 
 enum CommunityRole {
   ADMIN
@@ -135,13 +149,6 @@ enum CommunityRole {
   MODERATOR
 }
 
-enum NotificationType {
-  LIKE
-  COMMENT
-  FOLLOW
-  MENTION
-  SYSTEM
-}
 
 model Post {
   id        String   @id @default(uuid())
@@ -188,4 +195,23 @@ enum Role {
   STUDENT
   ADMIN
   MODERATOR
+}
+
+model UserNotification {
+  id        String   @id @default(uuid())
+  type      String   // "like" | "comment" | "follow" | "community_approved" | "community_rejected" | "dm"
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  recipient   User   @relation("ReceivedNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId String
+
+  actor       User?  @relation("SentNotifications", fields: [actorId], references: [id], onDelete: SetNull)
+  actorId     String?
+
+  postId        String?
+  communityId   String?
+
+  @@map("notifications")
 }

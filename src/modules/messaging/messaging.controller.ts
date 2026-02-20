@@ -14,8 +14,19 @@ export const getConversationWithUser = asyncHandler(async (req: Request, res: Re
 });
 
 export const getConversations = asyncHandler(async (req: Request, res: Response) => {
-    const conversations = await getConversationsService(req.user!.userId);
-    res.json(conversations);
+    const userId = req.user!.userId;
+    const conversations = await getConversationsService(userId);
+
+    // Map unreadCount from the current user's participant record to the root of the object
+    const mapped = conversations.map(conv => {
+        const myParticipant = conv.participants.find(p => p.userId === userId);
+        return {
+            ...conv,
+            unreadCount: myParticipant?.unreadCount || 0
+        };
+    });
+
+    res.json(mapped);
 });
 
 export const getMessages = asyncHandler(async (req: Request, res: Response) => {

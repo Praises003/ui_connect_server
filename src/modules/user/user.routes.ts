@@ -5,6 +5,7 @@ import {
   updateProfile,
   changePassword,
   getUserById,
+  toggleFollow,
 } from "./user.controller";
 
 const router = Router();
@@ -23,5 +24,8 @@ router.patch("/me/password", changePassword);
 
 // GET /api/users/:id
 router.get("/:id", getUserById);
+
+// POST /api/users/:id/follow  (toggle follow/unfollow)
+router.post("/:id/follow", toggleFollow);
 
 export default router;

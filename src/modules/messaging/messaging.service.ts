@@ -40,6 +40,14 @@ export const getMessagesService = async (userId: string, conversationId: string)
         throw new Error("Unauthorized to access conversation");
     }
 
+    // Reset unread count for this user
+    if (participant.unreadCount > 0) {
+        await prisma.conversationParticipant.update({
+            where: { id: participant.id },
+            data: { unreadCount: 0 },
+        });
+    }
+
     return await prisma.message.findMany({
         where: { conversationId },
         orderBy: { createdAt: "asc" },
@@ -118,6 +126,17 @@ export const sendMessageService = async (senderId: string, recipientId: string, 
     await prisma.conversation.update({
         where: { id: conversationId },
         data: { updatedAt: new Date() },
+    });
+
+    // Increment unread count for the recipient
+    await prisma.conversationParticipant.updateMany({
+        where: {
+            conversationId,
+            userId: { not: senderId }, // anyone who isn't the sender
+        },
+        data: {
+            unreadCount: { increment: 1 },
+        },
     });
 
     return message;

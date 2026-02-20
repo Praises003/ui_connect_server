@@ -5,6 +5,7 @@ import {
   updateProfileService,
   changePasswordService,
   getUserByIdService,
+  toggleFollowService,
 } from "./user.service";
 import {
   updateProfileSchema,
@@ -47,7 +48,14 @@ export const changePassword = asyncHandler(
 
 export const getUserById = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = await getUserByIdService(req.params.id as string);
+    const user = await getUserByIdService(req.params.id as string, req.user?.userId);
     res.json(user);
+  }
+);
+
+export const toggleFollow = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await toggleFollowService(req.user!.userId, req.params.id as string);
+    res.json(result);
   }
 );

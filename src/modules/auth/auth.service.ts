@@ -8,6 +8,8 @@ export const registerUser = async (data: {
   email: string;
   password: string;
   fullName: string;
+  department: string;
+  level: number;
 }) => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email }
@@ -24,6 +26,8 @@ export const registerUser = async (data: {
       email: data.email,
       password: hashedPassword,
       fullName: data.fullName,
+      department: data.department,
+      level: data.level,
       username: await generateUniqueUsername(data.email),
     }
   });

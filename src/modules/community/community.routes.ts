@@ -6,8 +6,11 @@ import {
     getCommunityById,
     joinCommunity,
     leaveCommunity,
-    deleteCommunity
+    deleteCommunity,
+    getCommunityRequests,
+    updateCommunityRequest
 } from "./community.controller";
+import { getCommunityMessages } from "./community.chat";
 
 const router = Router();
 
@@ -19,5 +22,8 @@ router.get("/:id", getCommunityById);
 router.post("/:id/join", joinCommunity);
 router.post("/:id/leave", leaveCommunity);
 router.delete("/:id", deleteCommunity);
+router.get("/:id/requests", getCommunityRequests);
+router.put("/:id/requests/:userId", updateCommunityRequest);
+router.get("/:id/messages", getCommunityMessages);
 
 export default router;
