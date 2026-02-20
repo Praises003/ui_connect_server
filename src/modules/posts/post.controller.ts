@@ -22,8 +22,9 @@ export const createPost = asyncHandler(
 );
 
 export const getAllPosts = asyncHandler(
-  async (_req: Request, res: Response) => {
-    const posts = await getAllPostsService();
+  async (req: Request, res: Response) => {
+    const userId = req.query.userId as string | undefined;
+    const posts = await getAllPostsService(userId);
     res.json(posts);
   }
 );

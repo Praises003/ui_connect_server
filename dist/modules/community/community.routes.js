@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const community_controller_1 = require("./community.controller");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authenticate);
+router.post("/", community_controller_1.createCommunity);
+router.get("/", community_controller_1.getAllCommunities);
+router.get("/:id", community_controller_1.getCommunityById);
+router.post("/:id/join", community_controller_1.joinCommunity);
+router.post("/:id/leave", community_controller_1.leaveCommunity);
+router.delete("/:id", community_controller_1.deleteCommunity);
+exports.default = router;

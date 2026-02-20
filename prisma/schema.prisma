@@ -27,6 +27,7 @@ datasource db {
 model User {
   id         String   @id @default(uuid())
   email      String   @unique
+  username   String   @unique
   password   String
   fullName   String
   department String?
@@ -38,11 +39,108 @@ model User {
 
   refreshToken String?
   bio          String?  
-  avatarUrl    String?  
+  avatarUrl    String?
+  isOnline     Boolean  @default(false)
 
-  posts      Post[]
-  comments   Comment[]
-  likes      Like[]
+  followedBy    User[]   @relation("UserFollows")
+  following     User[]   @relation("UserFollows")  
+
+  posts          Post[]
+  comments       Comment[]
+  likes          Like[]
+  communities    CommunityMember[]
+  messages       Message[]
+  createdCommunities Community[]
+  notifications  Notification[]
+  participants   ConversationParticipant[]
+}
+
+model Community {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  privacy     String   @default("public") // "public" | "private"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator     User     @relation(fields: [creatorId], references: [id])
+  creatorId   String
+
+  members     CommunityMember[]
+  posts       Post[]
+}
+
+model CommunityMember {
+  id          String   @id @default(uuid())
+  role        CommunityRole @default(MEMBER)
+  joinedAt    DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+
+  community   Community @relation(fields: [communityId], references: [id])
+  communityId String
+
+  @@unique([userId, communityId])
+}
+
+
+
+model Conversation {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
+  
+  @@unique([userId, conversationId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  content        String
+  createdAt      DateTime @default(now())
+  
+  sender         User     @relation(fields: [senderId], references: [id])
+  senderId       String
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  type      NotificationType
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  recipient User     @relation(fields: [recipientId], references: [id])
+  recipientId String
+}
+
+enum CommunityRole {
+  ADMIN
+  MEMBER
+  MODERATOR
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  MENTION
+  SYSTEM
 }
 
 model Post {
@@ -54,6 +152,9 @@ model Post {
 
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
+
+  community Community? @relation(fields: [communityId], references: [id])
+  communityId String?
 
   comments  Comment[]
   likes     Like[]

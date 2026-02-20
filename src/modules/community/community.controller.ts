@@ -1,0 +1,46 @@
+import { Request, Response } from "express";
+import asyncHandler from "express-async-handler";
+import {
+    createCommunityService,
+    getAllCommunitiesService,
+    getCommunityByIdService,
+    joinCommunityService,
+    leaveCommunityService,
+    deleteCommunityService
+} from "./community.service";
+import { createCommunitySchema, updateCommunitySchema } from "./community.schema";
+
+export const createCommunity = asyncHandler(async (req: Request, res: Response) => {
+    const validatedData = createCommunitySchema.parse(req.body);
+    const community = await createCommunityService(req.user!.userId, validatedData);
+    res.status(201).json(community);
+});
+
+export const getAllCommunities = asyncHandler(async (req: Request, res: Response) => {
+    const communities = await getAllCommunitiesService();
+    res.json(communities);
+});
+
+export const getCommunityById = asyncHandler(async (req: Request, res: Response) => {
+    const community = await getCommunityByIdService(req.params.id as string);
+    if (!community) {
+        res.status(404);
+        throw new Error("Community not found");
+    }
+    res.json(community);
+});
+
+export const joinCommunity = asyncHandler(async (req: Request, res: Response) => {
+    const membership = await joinCommunityService(req.user!.userId, req.params.id as string);
+    res.json(membership);
+});
+
+export const leaveCommunity = asyncHandler(async (req: Request, res: Response) => {
+    await leaveCommunityService(req.user!.userId, req.params.id as string);
+    res.json({ message: "Left community successfully" });
+});
+
+export const deleteCommunity = asyncHandler(async (req: Request, res: Response) => {
+    await deleteCommunityService(req.user!.userId, req.params.id as string);
+    res.json({ message: "Community deleted successfully" });
+});

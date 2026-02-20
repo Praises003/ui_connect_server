@@ -36,8 +36,9 @@ export const createPostService = async (
 /**
  * Get All Posts (Feed)
  */
-export const getAllPostsService = async () => {
+export const getAllPostsService = async (userId?: string) => {
   return prisma.post.findMany({
+    where: userId ? { authorId: userId } : {},
     orderBy: { createdAt: "desc" },
     include: {
       author: {
@@ -47,6 +48,12 @@ export const getAllPostsService = async () => {
           avatarUrl: true,
         },
       },
+      _count: {
+        select: {
+          likes: true,
+          comments: true
+        }
+      }
     },
   });
 };

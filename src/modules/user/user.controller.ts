@@ -4,6 +4,7 @@ import {
   getProfileService,
   updateProfileService,
   changePasswordService,
+  getUserByIdService,
 } from "./user.service";
 import {
   updateProfileSchema,
@@ -41,5 +42,12 @@ export const changePassword = asyncHandler(
     );
 
     res.json(result);
+  }
+);
+
+export const getUserById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const user = await getUserByIdService(req.params.id as string);
+    res.json(user);
   }
 );
