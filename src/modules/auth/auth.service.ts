@@ -8,6 +8,8 @@ export const registerUser = async (data: {
   email: string;
   password: string;
   fullName: string;
+  department: string;
+  level: number;
 }) => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email }
@@ -23,11 +25,36 @@ export const registerUser = async (data: {
     data: {
       email: data.email,
       password: hashedPassword,
-      fullName: data.fullName
+      fullName: data.fullName,
+      department: data.department,
+      level: data.level,
+      username: await generateUniqueUsername(data.email),
     }
   });
 
   return user;
+};
+
+// Helper: Generate unique username
+const generateUniqueUsername = async (email: string) => {
+  let username = email.split("@")[0];
+  let isUnique = false;
+
+  // Check if base username exists
+  const existing = await prisma.user.findUnique({ where: { username } });
+  if (!existing) return username;
+
+  // Append random numbers until unique
+  while (!isUnique) {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000); // 4 digit
+    const candidate = `${username}${randomSuffix}`;
+    const check = await prisma.user.findUnique({ where: { username: candidate } });
+    if (!check) {
+      username = candidate;
+      isUnique = true;
+    }
+  }
+  return username;
 };
 
 export const loginUser = async (email: string, password: string) => {
