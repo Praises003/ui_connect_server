@@ -16,7 +16,7 @@ export const markAllRead = asyncHandler(async (req: Request, res: Response) => {
 
 export const markOneRead = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
-    const { id } = req.params;
+    const { id } = req.params as { id: string };;
     await markOneReadService(id, userId);
     res.json({ success: true });
 });
